@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
@@ -15,8 +15,15 @@ type UserType = 'volunteer' | 'organization' | 'admin'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { user, isLoading, login } = useAuth()
   const [userType, setUserType] = useState<UserType>('volunteer')
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push('/')
+    }
+  }, [user, isLoading, router])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -68,6 +75,23 @@ export default function LoginPage() {
       default:
         return null // Admins don't have public registration
     }
+  }
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <main className="flex-1 min-h-screen bg-gradient-to-b from-drop-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-drop-500"></div>
+          <p className="mt-4 text-slate-600">Loading...</p>
+        </div>
+      </main>
+    )
+  }
+
+  // Don't render login form if user is already logged in
+  if (user) {
+    return null
   }
 
   return (
