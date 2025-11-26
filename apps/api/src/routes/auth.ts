@@ -125,94 +125,114 @@ export const authRouter = new Elysia({ prefix: '/auth', tags: ['auth'] })
 
   // Email Verification
   .get('/verify-email/:token', async ({ params, set }) => {
-    const { token } = params;
+    try {
+      const { token } = params;
 
-    // Find verification token
-    const tokenRecord = await db
-      .select()
-      .from(verificationTokens)
-      .where(eq(verificationTokens.token, token));
+      // Find verification token
+      const tokenRecord = await db
+        .select()
+        .from(verificationTokens)
+        .where(eq(verificationTokens.token, token));
 
-    // If token not found, check if it might have been already used
-    if (tokenRecord.length === 0) {
-      set.status = 400;
-      throw new Error('This verification link is invalid or has already been used. If you already verified your email, please try logging in.');
-    }
-
-    const record = tokenRecord[0];
-
-    // Check if token is expired
-    if (new Date() > record.expiresAt) {
-      set.status = 400;
-      throw new Error('Verification token has expired. Please request a new verification email.');
-    }
-
-    // Check if it's an email verification token
-    if (record.type !== 'email_verification') {
-      set.status = 400;
-      throw new Error('Invalid token type');
-    }
-
-    // Check for volunteer
-    const existingVolunteer = await db
-      .select()
-      .from(volunteers)
-      .where(eq(volunteers.email, record.email));
-
-    if (existingVolunteer.length > 0) {
-      if (existingVolunteer[0].email_verified) {
-        await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
+      // If token not found, check if it might have been already used
+      if (tokenRecord.length === 0) {
+        set.status = 400;
         return {
-          success: true,
-          message: 'Email already verified! You can now log in.',
+          success: false,
+          message: 'This verification link is invalid or has already been used. If you already verified your email, please try logging in.',
         };
       }
-      
-      // Update volunteer's email_verified status
-      await db
-        .update(volunteers)
-        .set({ email_verified: true, updatedAt: new Date() })
+
+      const record = tokenRecord[0];
+
+      // Check if token is expired
+      if (new Date() > record.expiresAt) {
+        set.status = 400;
+        return {
+          success: false,
+          message: 'Verification token has expired. Please request a new verification email.',
+        };
+      }
+
+      // Check if it's an email verification token
+      if (record.type !== 'email_verification') {
+        set.status = 400;
+        return {
+          success: false,
+          message: 'Invalid token type',
+        };
+      }
+
+      // Check for volunteer
+      const existingVolunteer = await db
+        .select()
+        .from(volunteers)
         .where(eq(volunteers.email, record.email));
 
-      await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
+      if (existingVolunteer.length > 0) {
+        if (existingVolunteer[0].email_verified) {
+          await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
+          return {
+            success: true,
+            message: 'Email already verified! You can now log in.',
+          };
+        }
+        
+        // Update volunteer's email_verified status
+        await db
+          .update(volunteers)
+          .set({ email_verified: true, updatedAt: new Date() })
+          .where(eq(volunteers.email, record.email));
 
-      return {
-        success: true,
-        message: 'Email verified successfully! You can now log in.',
-      };
-    }
-
-    // Check for organization
-    const existingOrg = await db
-      .select()
-      .from(organizations)
-      .where(eq(organizations.email, record.email));
-
-    if (existingOrg.length > 0) {
-      if (existingOrg[0].email_verified) {
         await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
+
         return {
           success: true,
-          message: 'Email already verified! Your organization registration is pending admin approval.',
+          message: 'Email verified successfully! You can now log in.',
         };
       }
-      
-      // Update organization's email_verified status
-      await db
-        .update(organizations)
-        .set({ email_verified: true, updatedAt: new Date() })
+
+      // Check for organization
+      const existingOrg = await db
+        .select()
+        .from(organizations)
         .where(eq(organizations.email, record.email));
 
-      await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
+      if (existingOrg.length > 0) {
+        if (existingOrg[0].email_verified) {
+          await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
+          return {
+            success: true,
+            message: 'Email already verified! Your organization registration is pending admin approval.',
+          };
+        }
+        
+        // Update organization's email_verified status
+        await db
+          .update(organizations)
+          .set({ email_verified: true, updatedAt: new Date() })
+          .where(eq(organizations.email, record.email));
 
+        await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
+
+        return {
+          success: true,
+          message: 'Email verified successfully! Your organization registration is pending admin approval. You will be notified once approved.',
+        };
+      }
+
+      set.status = 400;
       return {
-        success: true,
-        message: 'Email verified successfully! Your organization registration is pending admin approval. You will be notified once approved.',
+        success: false,
+        message: 'User not found',
+      };
+    } catch (error) {
+      set.status = 500;
+      return {
+        success: false,
+        message: 'An error occurred during verification. Please try again.',
       };
     }
-
-    set.status = 400;
-    throw new Error('User not found');
   }, {
     params: t.Object({
       token: t.String(),
@@ -264,7 +284,7 @@ export const authRouter = new Elysia({ prefix: '/auth', tags: ['auth'] })
 
     if (organization.length > 0) {
       // Check if already verified
-      if (organization[0].email_verified) {
+      if (organization[0].verified) {
         throw new Error('Email is already verified');
       }
 
