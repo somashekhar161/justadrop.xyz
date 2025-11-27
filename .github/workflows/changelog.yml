@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
-  update-changelog:
+  changelog:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -17,7 +16,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,35 +25,55 @@ jobs:
       - name: Install conventional-changelog-cli
         run: npm install -g conventional-changelog-cli
 
-      - name: Generate changelog
+      - name: Determine next version
+        id: version
         run: |
           # Check if any tags exist
           if git describe --tags --abbrev=0 2>/dev/null; then
             LATEST_TAG=$(git describe --tags --abbrev=0)
-            echo "Latest tag found: ${LATEST_TAG}"
+            echo "Latest tag: ${LATEST_TAG}"
 
             # Check if there are new commits since the tag
             NEW_COMMITS=$(git log ${LATEST_TAG}..HEAD --oneline --no-merges)
 
             if [ -z "$NEW_COMMITS" ]; then
               echo "No new commits since ${LATEST_TAG}"
+              echo "should_release=false" >> $GITHUB_OUTPUT
               exit 0
             fi
 
-            echo "Found new commits since ${LATEST_TAG}:"
-            echo "$NEW_COMMITS"
+            # Extract version numbers (remove 'v' prefix)
+            VERSION=${LATEST_TAG#v}
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+            # Increment patch version
+            PATCH=$((PATCH + 1))
+            NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+
+            echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+            echo "latest_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "is_first=false" >> $GITHUB_OUTPUT
           else
-            echo "No tags found - this appears to be the first run"
-            echo "Skipping changelog generation to avoid duplicates"
-            echo "The CHANGELOG.md has already been manually populated"
-            echo "Future runs will add new commits automatically"
-            exit 0
+            echo "No tags found - first release"
+            echo "new_version=v1.0.0" >> $GITHUB_OUTPUT
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "is_first=true" >> $GITHUB_OUTPUT
           fi
 
-          # Generate changelog only for commits since last tag
-          conventional-changelog -p angular -i CHANGELOG.md -s
+      - name: Generate changelog
+        if: steps.version.outputs.should_release == 'true'
+        run: |
+          if [ "${{ steps.version.outputs.is_first }}" = "true" ]; then
+            echo "Generating changelog from all commits"
+            conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+          else
+            echo "Generating changelog since ${{ steps.version.outputs.latest_tag }}"
+            conventional-changelog -p angular -i CHANGELOG.md -s
+          fi
 
-      - name: Commit and push changelog
+      - name: Commit changelog
+        if: steps.version.outputs.should_release == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -66,13 +84,25 @@ jobs:
             exit 0
           fi
 
-          # Check for changes (add file first if untracked)
+          # Add and check for changes
           git add CHANGELOG.md
 
           if git diff --cached --quiet -- CHANGELOG.md; then
-            echo "No changelog changes to commit"
-            exit 0
+            echo "No changelog changes"
+          else
+            git commit -m "docs: update CHANGELOG.md for ${{ steps.version.outputs.new_version }} [skip ci]"
           fi
 
-          git commit -m "docs: update CHANGELOG.md [skip ci]"
+      - name: Create and push tag
+        if: steps.version.outputs.should_release == 'true'
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+
+          echo "Creating tag: ${NEW_VERSION}"
+          git tag -a ${NEW_VERSION} -m "Release ${NEW_VERSION}"
+
+          echo "Pushing tag and changes"
+          git push origin ${NEW_VERSION}
           git push
+
+          echo "✅ Created and pushed tag: ${NEW_VERSION}"
