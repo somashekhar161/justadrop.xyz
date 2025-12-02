@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia';
 import { AuthService } from '../services/auth.service';
 import { log } from '../utils/logger';
+import { AuthError, AuthErrors } from '../utils/auth-errors';
 
 export class AuthController {
   private authService: AuthService;
@@ -140,7 +141,7 @@ export class AuthController {
       // Verify refresh token JWT (stateless - no DB lookup)
       const refreshPayload = await refreshJwt.verify(body.refreshToken);
       if (!refreshPayload || !refreshPayload.id || !refreshPayload.type) {
-        throw new Error('Invalid refresh token');
+        throw AuthErrors.INVALID_REFRESH_TOKEN;
       }
 
       // Generate new access token
@@ -155,7 +156,12 @@ export class AuthController {
       };
     } catch (error) {
       log.error('Token refresh failed', error);
-      throw new Error('Invalid or expired refresh token');
+      // If it's already an AuthError, re-throw it
+      if (error instanceof AuthError) {
+        throw error;
+      }
+      // Otherwise, it's likely a JWT verification error (expired/invalid)
+      throw AuthErrors.INVALID_REFRESH_TOKEN;
     }
   }
 
