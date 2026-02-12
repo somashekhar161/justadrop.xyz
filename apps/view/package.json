@@ -1,0 +1,19 @@
+{
+  "name": "@justadrop/view",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'View app - to be implemented'",
+    "build": "echo 'View app - to be implemented'",
+    "start": "echo 'View app - to be implemented'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@justadrop/types": "workspace:*",
+    "@justadrop/common": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "bun-types": "^1.1.0"
+  }
+}

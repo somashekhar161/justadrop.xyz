@@ -1,5 +1,5 @@
 {
-  "name": "@justadrop/types",
+  "name": "@justadrop/common",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
+  "dependencies": {},
   "devDependencies": {
+    "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
   }
 }

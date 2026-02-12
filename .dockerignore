@@ -1,43 +1,36 @@
-# Dependencies
 node_modules
-**/node_modules
-
-# Build outputs
-.next
 dist
-build
-*.tsbuildinfo
-
-# Development files
+.next
+.git
+.github
 .env
 .env.local
 .env.*.local
 *.log
-
-# Git
-.git
-.gitignore
-
-# Documentation
-*.md
-docs
-
-# IDE
+.DS_Store
+coverage
 .vscode
 .idea
 *.swp
 *.swo
 *~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Testing
-coverage
-.nyc_output
-
-# Misc
 .cache
-.temp
+temp
 tmp
+*.md
+!README.md
+docs
+LICENSE
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+.gitignore
+.editorconfig
+.prettierrc
+.eslintrc
+tsconfig.json
+bun.lockb
+apps/*/dist
+apps/*/.next
+packages/*/dist
+apps/view
+apps/dashboard

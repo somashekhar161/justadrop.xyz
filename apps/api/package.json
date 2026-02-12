@@ -1,14 +1,18 @@
 {
   "name": "@justadrop/api",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
-    "start": "bun run dist/index.js"
+    "start": "bun run dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@justadrop/db": "file:../../packages/db",
-    "@justadrop/types": "file:../../packages/types",
+    "@justadrop/db": "workspace:*",
+    "@justadrop/types": "workspace:*",
+    "@justadrop/common": "workspace:*",
     "elysia": "^1.1.0",
     "@elysiajs/cors": "^1.1.0",
     "@elysiajs/swagger": "^1.1.0",
@@ -17,6 +21,7 @@
   },
   "devDependencies": {
     "bun-types": "^1.1.0",
-    "@types/nodemailer": "^6.4.14"
+    "@types/nodemailer": "^6.4.14",
+    "typescript": "^5.3.3"
   }
 }
