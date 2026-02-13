@@ -87,11 +87,26 @@ docker-down: ## Stop all Docker Compose services
 docker-build: ## Build Docker images
 	docker-compose build
 
-docker-dev-up: ## Start only database for development
+docker-dev-up: ## Start all services with hot reload (database + all apps)
 	docker-compose -f docker-compose.dev.yml up -d
 
-docker-dev-down: ## Stop development database
+docker-dev-down: ## Stop all development services
 	docker-compose -f docker-compose.dev.yml down
+
+docker-dev-logs: ## View logs from all development services
+	docker-compose -f docker-compose.dev.yml logs -f
+
+docker-dev-api-logs: ## View API logs
+	docker-compose -f docker-compose.dev.yml logs -f api
+
+docker-dev-view-logs: ## View View app logs
+	docker-compose -f docker-compose.dev.yml logs -f view
+
+docker-dev-dashboard-logs: ## View Dashboard logs
+	docker-compose -f docker-compose.dev.yml logs -f dashboard
+
+docker-dev-restart: ## Restart all development services
+	docker-compose -f docker-compose.dev.yml restart
 
 db-psql: ## Connect to PostgreSQL with psql
 	docker-compose exec postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-justadrop}
