@@ -21,8 +21,7 @@ Before creating bug reports, please check the existing issues to avoid duplicate
 - **Screenshots**: If applicable
 - **Environment**:
   - OS: [e.g., macOS 14.0, Ubuntu 22.04]
-  - Bun version: [e.g., 1.0.15]
-  - Node version (if applicable): [e.g., 20.10.0]
+  - Bun version: [e.g., 1.0.0]
   - Browser: [e.g., Chrome 120, Firefox 121]
 
 ### Suggesting Enhancements
@@ -47,7 +46,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Prerequisites
 
-- Bun >= 1.0 ([install from bun.sh](https://bun.sh))
+- Bun ([install](https://bun.sh))
 - Docker (for PostgreSQL)
 - Git
 
@@ -63,44 +62,42 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 2. **Install dependencies**:
 
    ```bash
-   make install
-   # or: bun install
+   cd api && bun install
+   cd ../view && bun install
+   cd ../dashboard && bun install
    ```
 
 3. **Set up the database**:
 
    ```bash
-   make db-setup
+   docker-compose -f docker-compose.dev.yml up -d postgres
    ```
 
 4. **Copy environment files**:
 
    ```bash
-   cp .env.example .env
-   cp apps/web/.env.example apps/web/.env
+   cp api/.env.example api/.env
+   cp view/.env.example view/.env
+   cp dashboard/.env.example dashboard/.env
    ```
 
 5. **Run migrations**:
 
    ```bash
-   make db-generate
-   make db-migrate
+   bun run db:migrate
    ```
 
-6. **Build packages**:
+6. **Start development servers**:
 
    ```bash
-   bun run build:packages
-   ```
-
-7. **Start development servers**:
-
-   ```bash
-   make dev
+   bun run dev:api       # API on :3001
+   bun run dev:view      # View on :3000
+   bun run dev:dashboard # Dashboard on :3002
    ```
 
    The app will be available at:
-   - Frontend: <http://localhost:3000>
+   - View: <http://localhost:3000>
+   - Dashboard: <http://localhost:3002>
    - API: <http://localhost:3001>
    - API Docs: <http://localhost:3001/swagger>
 
@@ -108,13 +105,10 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ```
 justadrop.xyz/
-├── apps/
-│   ├── api/              # Elysia backend
-│   └── web/              # Next.js frontend
-├── packages/
-│   ├── db/               # Drizzle ORM schemas and migrations
-│   └── types/            # Shared TypeScript types
-└── docs/                 # Documentation
+├── api/              # Elysia backend (includes database schema & migrations)
+├── view/             # Next.js frontend (includes UI components & utilities)
+├── dashboard/        # Next.js admin dashboard (includes UI components & utilities)
+└── docs/             # Documentation
 ```
 
 ## Coding Standards
@@ -131,7 +125,7 @@ justadrop.xyz/
 
 - Use TypeScript for all new code
 - Define proper types (avoid `any`)
-- Export types from `packages/types` for shared use
+- Define types locally in each app as needed
 - Use Zod for runtime validation
 
 ### React/Next.js (Frontend)
@@ -193,23 +187,10 @@ Closes #123
 ```
 
 ```
-fix(web): resolve mobile navigation menu not closing
+fix(view): resolve mobile navigation menu not closing
 
 The navigation menu on mobile devices wasn't closing after selecting
 a link. Added onClick handler to close menu on route change.
-```
-
-## Testing
-
-### Running Tests
-
-```bash
-# Run all tests
-bun test
-
-# Run tests for specific package
-cd apps/api && bun test
-cd apps/web && bun test
 ```
 
 ## Database Migrations
@@ -219,17 +200,15 @@ When making database schema changes:
 1. **Generate migration**:
 
    ```bash
-   make db-generate
-   # or: cd packages/db && bun run db:generate
+   bun run db:generate
    ```
 
-2. **Review the generated migration** in `packages/db/drizzle/`
+2. **Review the generated migration** in `api/drizzle/`
 
 3. **Test the migration**:
 
    ```bash
-   make db-migrate
-   # or: cd packages/db && bun run db:migrate
+   bun run db:migrate
    ```
 
 4. **Commit both** the schema changes and the generated migration
@@ -252,7 +231,7 @@ When making database schema changes:
    git rebase main
    ```
 
-2. **Ensure all tests pass** and code follows style guidelines
+2. **Ensure code follows style guidelines**
 
 3. **Update documentation** as needed
 
@@ -271,17 +250,16 @@ When making database schema changes:
 Releases are managed by maintainers:
 
 1. Update CHANGELOG.md
-2. Bump version in package.json
+2. Bump version in package.json files
 3. Create a Git tag
 4. Push to main
 5. Create GitHub release
 
 ## Getting Help
 
-- **Documentation**: Check [README.md](README.md) and other docs
+- **Documentation**: Check [README.md](../README.md) and other docs
 - **Issues**: Search existing issues or create a new one
 - **Discussions**: Use GitHub Discussions for questions
-- **Discord/Slack**: [Link to community chat if available]
 
 ## Recognition
 

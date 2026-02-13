@@ -66,5 +66,7 @@ coverage/
 # Cache
 .cache/
 **/.cache/
-.turbo/
-**/.turbo/
+
+# Bun
+.bun/
+bun.lockb

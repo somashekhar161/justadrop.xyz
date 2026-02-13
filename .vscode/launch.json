@@ -7,7 +7,7 @@
       "request": "launch",
       "runtimeExecutable": "bun",
       "runtimeArgs": ["--inspect", "src/index.ts"],
-      "cwd": "${workspaceFolder}/apps/api",
+      "cwd": "${workspaceFolder}/api",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "skipFiles": ["<node_internals>/**"]
@@ -17,8 +17,8 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "bun",
-      "runtimeArgs": ["--inspect", "node_modules/.bin/next", "dev", "-p", "3000"],
-      "cwd": "${workspaceFolder}/apps/view",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/view",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "skipFiles": ["<node_internals>/**"]
@@ -28,8 +28,8 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "bun",
-      "runtimeArgs": ["--inspect", "node_modules/.bin/next", "dev", "-p", "3002"],
-      "cwd": "${workspaceFolder}/apps/dashboard",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/dashboard",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "skipFiles": ["<node_internals>/**"]

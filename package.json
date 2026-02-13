@@ -1,49 +1,28 @@
 {
   "name": "justadrop",
   "version": "1.0.0",
-  "private": false,
-  "engines": {
-    "node": "v24.7.0"
-  },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "private": true,
   "scripts": {
-    "setup": "bun run setup:env && bun run setup:db",
-    "setup:env": "node -e \"const fs=require('fs');if(!fs.existsSync('.env'))fs.copyFileSync('.env.example','.env')\"",
-    "setup:db": "docker-compose -f docker-compose.dev.yml up -d postgres && node -e \"setTimeout(()=>process.exit(0),3000)\" && bun run db:migrate",
-    "dev": "bun run --filter '*' dev",
-    "dev:api": "bun --cwd apps/api dev",
-    "dev:view": "bun --cwd apps/view dev",
-    "dev:dashboard": "bun --cwd apps/dashboard dev",
-    "build": "bun run build:packages && bun run build:apps",
-    "build:packages": "bun run --filter './packages/*' build",
-    "build:apps": "bun run --filter './apps/*' build",
-    "build:api": "bun --cwd apps/api build",
-    "build:view": "bun --cwd apps/view build",
-    "build:dashboard": "bun --cwd apps/dashboard build",
-    "db:generate": "bun --cwd packages/db db:generate",
-    "db:migrate": "bun --cwd packages/db db:migrate",
-    "db:studio": "bun --cwd packages/db db:studio",
-    "db:reset": "docker-compose -f docker-compose.dev.yml down -v && bun run setup:db",
+    "dev:api": "cd api && bun run dev",
+    "dev:view": "cd view && bun run dev",
+    "dev:dashboard": "cd dashboard && bun run dev",
+    "build:api": "cd api && bun run build",
+    "build:view": "cd view && bun run build",
+    "build:dashboard": "cd dashboard && bun run build",
+    "db:generate": "cd api && bun run db:generate",
+    "db:migrate": "cd api && bun run db:migrate",
+    "db:studio": "cd api && bun run db:studio",
+    "db:cleanup": "cd api && bun run db:cleanup",
+    "db:reset": "docker-compose -f docker-compose.dev.yml down -v && docker-compose -f docker-compose.dev.yml up -d postgres && sleep 3 && bun run db:migrate",
     "docker:dev": "docker-compose -f docker-compose.dev.yml up",
-    "docker:dev:build": "docker-compose -f docker-compose.dev.yml up --build",
     "docker:dev:down": "docker-compose -f docker-compose.dev.yml down",
-    "docker:dev:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "docker:dev:logs": "docker-compose -f docker-compose.dev.yml logs -f postgres",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "clean": "bun run --filter '*' clean",
-    "typecheck": "bun run --filter '*' typecheck",
+    "typecheck": "cd api && bun run typecheck && cd ../view && bun run typecheck && cd ../dashboard && bun run typecheck",
     "lint": "bun run format:check && bun run typecheck"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "bun-types": "^1.1.0",
     "prettier": "^3.2.5"
-  },
-  "trustedDependencies": [
-    "@justadrop/db",
-    "@justadrop/types"
-  ]
+  }
 }

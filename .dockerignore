@@ -27,10 +27,9 @@ CODE_OF_CONDUCT.md
 .editorconfig
 .prettierrc
 .eslintrc
-tsconfig.json
-bun.lockb
+pnpm-lock.yaml
 apps/*/dist
 apps/*/.next
+apps/*/node_modules
 packages/*/dist
-apps/view
-apps/dashboard
+packages/*/node_modules
