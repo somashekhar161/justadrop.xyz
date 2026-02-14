@@ -11,13 +11,35 @@ const config: Config = {
   theme: {
     container: {
       center: true,
-      padding: '2rem',
+      padding: {
+        DEFAULT: '1rem',
+        sm: '1.5rem',
+        md: '2rem',
+        lg: '2rem',
+      },
       screens: {
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
         '2xl': '1400px',
       },
     },
     extend: {
       colors: {
+        jad: {
+          primary: '#15836B',
+          dark: '#116A58',
+          accent: '#1FA889',
+          mint: '#E6F3EF',
+          foreground: '#0F3D34',
+          // Aliases for existing usage
+          teal: '#15836B',
+          'teal-dark': '#116A58',
+          'teal-light': '#1FA889',
+          green: '#15836B',
+          'green-light': '#1FA889',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
