@@ -1,10 +1,11 @@
 import { Elysia } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import { swagger } from '@elysiajs/swagger';
-import { healthRouter, authRouter, usersRouter, organizationsRouter, opportunitiesRouter, applicationsRouter, volunteersRouter } from './routes';
+import { healthRouter, authRouter, usersRouter, organizationsRouter, opportunitiesRouter, applicationsRouter, volunteersRouter, storageRouter } from './routes';
 import { errorHandler, responseEnvelope } from './middleware';
 import { runMigrations } from './db/index.js';
 import { logger } from './utils/logger';
+import { validateEnvOnStartup } from './config/env.js';
 import { moderatorRouter } from './routes/moderator';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -72,6 +73,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Run migrations before starting the server
 async function startServer() {
+  validateEnvOnStartup();
+
   // Run migrations only if enabled (default: true, set RUN_MIGRATIONS=false to disable)
   if (shouldRunMigrations) {
     try {
@@ -119,6 +122,7 @@ async function startServer() {
           tags: [
             { name: 'health', description: 'Health check endpoints' },
             { name: 'auth', description: 'Authentication endpoints' },
+            { name: 'storage', description: 'File storage (Supabase Storage) endpoints' },
           ],
         },
       })
@@ -135,6 +139,7 @@ async function startServer() {
     .use(opportunitiesRouter)
     .use(applicationsRouter)
     .use(volunteersRouter)
+    .use(storageRouter)
     .listen(3001);
 
   server = app;

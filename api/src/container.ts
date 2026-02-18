@@ -10,6 +10,7 @@ import { EmailService } from './services/email.service';
 import { OtpService } from './services/otp.service';
 import { SessionService } from './services/session.service';
 import { AuthService } from './services/auth.service';
+import { StorageService } from './services/storage.service';
 import { AuthController } from './controllers/auth.controller';
 import { ModeratorRepository } from './repositories/moderator.repository';
 import { ModeratorService } from './services/moderator.service';
@@ -33,6 +34,7 @@ class Container {
     otp: OtpService;
     session: SessionService;
     auth: AuthService;
+    storage: StorageService;
     moderator: ModeratorService;
   } | null = null;
 
@@ -83,6 +85,7 @@ class Container {
         otp: otpService,
         session: sessionService,
         auth: authService,
+        storage: new StorageService(),
         moderator: moderatorService,
       };
     }
