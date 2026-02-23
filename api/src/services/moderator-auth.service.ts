@@ -42,6 +42,7 @@ export class ModeratorAuthService {
     }
     return moderator;
   }
+
   async sendOtp(email: string): Promise<void> {
     await this.verifyModeratorByEmail(email);
     await this.authService.sendOtp(email);
@@ -50,7 +51,7 @@ export class ModeratorAuthService {
   async verifyOtpAndLoginAsModerator(
     email: string,
     code: string
-  ): Promise<{ token: string; moderator: Moderator; X_Auth_Id: string }> {
+  ): Promise<{ token: string; moderator: Moderator }> {
     const normalizedEmail = email.toLowerCase().trim();
 
     const isValid = await this.otpService.verifyOtp(normalizedEmail, code);
@@ -62,9 +63,7 @@ export class ModeratorAuthService {
 
     const token = await this.moderatorSessionService.createSession(moderator.id);
 
-    const X_Auth_Id = process.env.X_AUTH_ID!;
-
-    return { token, moderator, X_Auth_Id };
+    return { token, moderator };
   }
 
   async logout(token: string): Promise<void> {

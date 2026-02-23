@@ -27,10 +27,10 @@ export class ModeratorAuthController {
       body.email,
       body.code
     );
+
     return {
       token: result.token,
       moderator: result.moderator,
-      X_Auth_ID: result.X_Auth_Id,
     };
   }
 

@@ -1,13 +1,27 @@
 import { Elysia, t } from 'elysia';
+import type { Context } from 'elysia';
 import { cookie } from '@elysiajs/cookie';
 import { container } from '../container';
 import {
   moderatorMiddleware,
   verifyXAuthHeaderMiddleware,
 } from '@/middleware/moderator.middleware';
-
 const moderatorAuthController = container.getControllers().moderatorAuth;
 
+const setSessionCookie = (cookie: Context['cookie'], token: string) => {
+  const sessionToken = cookie.sessionToken;
+  sessionToken.value = token;
+  sessionToken.httpOnly = true;
+  sessionToken.secure = process.env.NODE_ENV === 'production';
+  sessionToken.sameSite = 'lax';
+  sessionToken.maxAge = 30 * 24 * 60 * 60; // 30 days
+  sessionToken.path = '/';
+};
+
+const getTokenFromCookie = (cookie: Context['cookie']): string | undefined => {
+  const sessionToken = cookie.sessionToken;
+  return typeof sessionToken?.value === 'string' ? sessionToken.value : undefined;
+};
 export const moderatorAuthRouter = new Elysia({
   prefix: '/moderator-auth',
   tags: ['moderator-auth'],
@@ -27,22 +41,17 @@ export const moderatorAuthRouter = new Elysia({
   )
   .post(
     '/otp/verify',
-    async ({ body, cookie }) => {
+    async ({ body, cookie, set }) => {
       const result = await moderatorAuthController.verifyOtp(body);
 
-      // Use reactive cookie system - assign value directly
-      const sessionToken = cookie.sessionToken;
-      sessionToken.value = result.token;
-      sessionToken.httpOnly = true;
-      sessionToken.secure = process.env.NODE_ENV === 'production';
-      sessionToken.sameSite = 'lax';
-      sessionToken.maxAge = 30 * 24 * 60 * 60; // 30 days
-      sessionToken.path = '/';
+      setSessionCookie(cookie, result.token);
+
+      const xAuthId = process.env.X_AUTH_ID!;
+      set.headers['x-auth-id'] = xAuthId;
 
       return {
         token: result.token,
         moderator: result.moderator,
-        X_Auth_ID: result.X_Auth_ID,
       };
     },
     {
@@ -58,7 +67,7 @@ export const moderatorAuthRouter = new Elysia({
     '/logout',
     async ({ cookie }) => {
       const sessionToken = cookie.sessionToken;
-      const token = typeof sessionToken?.value === 'string' ? sessionToken.value : undefined;
+      const token = getTokenFromCookie(cookie);
 
       if (token) {
         await moderatorAuthController.logout(token);
@@ -80,8 +89,7 @@ export const moderatorAuthRouter = new Elysia({
   .get(
     '/me',
     async ({ cookie }) => {
-      const sessionToken = cookie.sessionToken;
-      const token = typeof sessionToken?.value === 'string' ? sessionToken.value : undefined;
+      const token = getTokenFromCookie(cookie);
       return await moderatorAuthController.getCurrentModerator(token);
     },
     {
