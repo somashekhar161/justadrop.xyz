@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 
 export default function DashboardPage() {
-  const { user, isAuthenticated, isLoading, isReady, logout } = useAuth();
+  const { moderator, isAuthenticated, isLoading, isReady, logout } = useAuth();
   const router = useRouter();
   useEffect(() => {
     if (isReady && !isAuthenticated) {
@@ -23,7 +23,7 @@ export default function DashboardPage() {
     }
   }, [isReady, isAuthenticated, router]);
 
-  if (!isReady || isLoading || !user) {
+  if (!isReady || isLoading || !moderator) {
     return <DashboardSkeleton />;
   }
   return (
@@ -47,7 +47,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome {user?.name || user?.email} to your admin dashboard
+              Welcome {moderator.user.name || moderator.user.email} to your admin dashboard
             </p>
           </div>
 

@@ -15,7 +15,7 @@ export function useSession() {
 
 export function useAuth() {
   const queryClient = useQueryClient();
-  const { data: user, isLoading, isFetched } = useSession();
+  const { data: moderator, isLoading, isFetched } = useSession();
 
   const logoutMutation = useMutation({
     mutationFn: () => moderatorAuthClient.logout(),
@@ -26,9 +26,9 @@ export function useAuth() {
   });
 
   return {
-    user: user ?? null,
+    moderator: moderator ?? null,
     isLoading,
-    isAuthenticated: Boolean(user),
+    isAuthenticated: Boolean(moderator),
     isReady: isFetched,
     logout: () => logoutMutation.mutateAsync(),
   };

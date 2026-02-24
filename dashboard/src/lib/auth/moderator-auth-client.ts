@@ -66,6 +66,10 @@ export const moderatorAuthClient = {
       credentials: 'include',
     });
     const data = await res.json().catch(() => ({}));
+
+    const resXAuthId = res.headers.get('x-auth-id');
+    sessionStorage.setItem('x-auth-id', resXAuthId || '');
+
     if (!res.ok) {
       throw new Error(data.message || data.error || 'Invalid or expired code');
     }
@@ -73,7 +77,12 @@ export const moderatorAuthClient = {
   },
 
   async getSession(): Promise<Moderator | null> {
+    const XAuthId = sessionStorage.getItem('x-auth-id');
+
     const res = await fetch(`${API_BASE}/me`, {
+      headers: {
+        'x-auth-id': XAuthId || '',
+      },
       credentials: 'include',
     });
     if (res.status === 401) return null;

@@ -23,6 +23,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // forward x-auth-id in response
+    const resXAuthId = res.headers.get('x-auth-id');
+
     // Copy session cookie from API response to our domain
     // Try Set-Cookie header first, fallback to token from JSON (backend returns it for proxy use)
     let token: string | null = null;
@@ -52,9 +55,14 @@ export async function POST(request: NextRequest) {
     }
     // Don't send token to browser - strip it from response body
     const data = json?.data ?? json;
+
     const { token: _, ...safe } = typeof data === 'object' && data ? data : {};
     // Return same shape client expects: { user, isNewUser } (not wrapped in data)
-    return NextResponse.json(Object.keys(safe).length ? safe : json);
+    const response = NextResponse.json(Object.keys(safe).length ? safe : json);
+    if (resXAuthId) {
+      response.headers.set('x-auth-id', resXAuthId);
+    }
+    return response;
   } catch (error) {
     console.error('Auth OTP verify error:', error);
     return NextResponse.json({ error: 'Failed to verify code' }, { status: 500 });

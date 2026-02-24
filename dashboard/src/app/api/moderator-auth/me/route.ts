@@ -4,7 +4,7 @@ import { getBackendUrl, getBackendErrorHint } from '@/lib/api-proxy';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const API_URL = getBackendUrl();
   try {
     const cookieStore = await cookies();
@@ -12,11 +12,13 @@ export async function GET() {
     if (!token) {
       return NextResponse.json(null, { status: 401 });
     }
+    const reqXAuthId = request.headers.get('x-auth-id');
 
     const res = await fetch(`${API_URL}/moderator-auth/me`, {
       method: 'GET',
       headers: {
         Cookie: `sessionToken=${token}`,
+        'x-auth-id': reqXAuthId || '',
       },
       cache: 'no-store',
     });
@@ -26,7 +28,7 @@ export async function GET() {
       return NextResponse.json(null, { status: res.status });
     }
     const data = json?.data ?? json;
-    return NextResponse.json(data?.user ?? data);
+    return NextResponse.json(data ?? data);
   } catch (error) {
     console.error('Auth me error:', error);
     const hint = getBackendErrorHint(error);
