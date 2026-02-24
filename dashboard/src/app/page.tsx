@@ -1,3 +1,5 @@
+'use client';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -7,15 +9,36 @@ import {
   LayoutWithHeader,
   Button,
 } from '../lib/common';
+import { useAuth } from '@/lib/auth';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 
 export default function DashboardPage() {
+  const { user, isAuthenticated, isLoading, isReady, logout } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (isReady && !isAuthenticated) {
+      router.replace('/login?redirect=/');
+    }
+  }, [isReady, isAuthenticated, router]);
+
+  if (!isReady || isLoading || !user) {
+    return <DashboardSkeleton />;
+  }
   return (
     <LayoutWithHeader
       headerProps={{
         nav: (
-          <Button variant="ghost" size="sm">
-            Dashboard
-          </Button>
+          <>
+            <Button variant="ghost" size="sm">
+              Dashboard
+            </Button>
+            <Button variant="ghost" size="sm" onClick={logout}>
+              logout
+            </Button>
+            <Link href={'/login'}>Login</Link>
+          </>
         ),
       }}
     >
@@ -23,7 +46,9 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome to your admin dashboard</p>
+            <p className="text-muted-foreground">
+              Welcome {user?.name || user?.email} to your admin dashboard
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
