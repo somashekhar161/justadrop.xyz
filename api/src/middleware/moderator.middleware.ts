@@ -3,30 +3,30 @@ import { cookie } from '@elysiajs/cookie';
 import { UnauthorizedError } from '../utils/errors';
 import { container } from '../container';
 
-const sessionService = container.getServices().session;
+const moderatorSessionService = container.getServices().moderatorSession;
 
 export const moderatorMiddleware = new Elysia({ name: 'moderator' })
   .use(cookie())
-  .derive(async ({ cookie: { sessionToken } }) => {
+  .derive({ as: 'scoped' }, async ({ cookie: { sessionToken } }) => {
     const token = sessionToken?.value as string | undefined;
     if (!token) {
       throw new UnauthorizedError('Authentication required');
     }
 
-    const session = await sessionService.validateModeratorSession(token);
+    const session = await moderatorSessionService.validateSession(token);
     if (!session) {
       throw new UnauthorizedError('Invalid or expired session');
     }
 
     return {
       moderator: session.moderator,
-      userId: session.userId,
+      userId: session.moderator.userId,
       moderatorId: session.moderator.id,
     };
   });
 
 export const verifyXAuthHeaderMiddleware = new Elysia({ name: 'verify-x-auth-id' }).derive(
-  { as: 'global' },
+  { as: 'scoped' },
   async ({ headers }) => {
     const xAuthId = headers['x-auth-id'] || headers['X-AUTH-ID'];
     const expected = process.env.X_AUTH_ID;
