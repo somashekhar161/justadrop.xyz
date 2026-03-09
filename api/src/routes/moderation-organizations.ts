@@ -1,14 +1,14 @@
 import { Elysia, t } from 'elysia';
 import { cookie } from '@elysiajs/cookie';
 import { container } from '../container';
-import { CAUSE_VALUES } from '../constants/causes.js';
-import { NotFoundError, ForbiddenError } from '../utils/errors.js';
+
 import {
   moderatorMiddleware,
   verifyXAuthHeaderMiddleware,
 } from '@/middleware/moderator.middleware';
 
 const organizationRepository = container.getRepositories().organization;
+const organizationModerationController = container.getControllers().organizationModeration;
 
 const action = {
   verified: 'verified',
@@ -38,7 +38,10 @@ export const organizationsModerationRouter = new Elysia({
       headers: t.Object({
         'x-auth-id': t.String(),
       }),
-      query: t.Object({ page: t.Number(), limit: t.Number() }),
+      query: t.Object({
+        page: t.Number({ minimum: 1 }),
+        limit: t.Number({ minimum: 1, maximum: 100 }),
+      }),
     }
   )
   .patch(
@@ -52,10 +55,34 @@ export const organizationsModerationRouter = new Elysia({
       headers: t.Object({
         'x-auth-id': t.String(),
       }),
-      params: t.Object({ organizationId: t.String() }),
+      params: t.Object({
+        organizationId: t.String({ minLength: 24, maxLength: 24, pattern: '^[a-z0-9]+$' }),
+      }),
       body: t.Object({
-        organizationId: t.String(),
+        organizationId: t.String({ minLength: 24, maxLength: 24, pattern: '^[a-z0-9]+$' }),
         action: t.Enum(action),
+      }),
+    }
+  )
+  .post(
+    '/:organizationId/clarify',
+    async (ctx) => {
+      const { content } = ctx.body;
+      const { organizationId } = ctx.params;
+      return await organizationModerationController.sendClarifyEmail({
+        organizationId,
+        content,
+      });
+    },
+    {
+      headers: t.Object({
+        'x-auth-id': t.String(),
+      }),
+      params: t.Object({
+        organizationId: t.String({ minLength: 24, maxLength: 24, pattern: '^[a-z0-9]+$' }),
+      }),
+      body: t.Object({
+        content: t.String({ minLength: 5, maxLength: 1000 }),
       }),
     }
   );

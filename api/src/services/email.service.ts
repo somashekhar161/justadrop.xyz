@@ -72,4 +72,36 @@ export class EmailService {
       logger.error({ error, to }, 'Failed to send welcome email');
     }
   }
+
+  async sendNGOClariyEmail(to: string, contactPersonName: string, content: string): Promise<void> {
+    if (!resendClient) {
+      logger.error({ to, content }, 'Resend client not initialized, skipping email send');
+      return;
+    }
+
+    try {
+      await resendClient.emails.send({
+        from: `${resendFromName} <${resendFromEmail}>`,
+        to,
+        subject: '🔐 Organization Verification Required - Just a Drop',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <div style="background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%); padding: 20px; border-radius: 8px; text-align: center; color: white; margin-bottom: 20px;">
+          <h1 style="margin: 0;">Just a Drop</h1>
+        </div>
+        <h2 style="color: #a78bfa;">Hello ${contactPersonName}! 👋</h2>
+        <div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #a78bfa; border-radius: 4px; margin: 20px 0;">
+          <p style="margin: 0; line-height: 1.6;">${content}</p>
+        </div>
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">Thank you for being part of the Just a Drop community.</p>
+          </div>
+        `,
+        text: `Just a Drop\n\nHello ${contactPersonName}!\n\n${content}`,
+      });
+
+      logger.info({ to, content }, 'clariy email sent successfully');
+    } catch (error) {
+      logger.error({ error, to, content }, 'Failed to send welcome email');
+    }
+  }
 }

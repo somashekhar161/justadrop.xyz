@@ -21,6 +21,8 @@ import { StorageService } from './services/storage.service';
 import { AuthController } from './controllers/auth.controller';
 import { ModeratorController } from './controllers/moderator.controller';
 import { ModeratorAuthController } from './controllers/moderator-auth.controller';
+import { OrganizationModerationService } from './services/organization-moderation.service';
+import { OrganizationModerationController } from './controllers/organization-moderation.controller';
 
 class Container {
   private _repositories: {
@@ -47,12 +49,14 @@ class Container {
     moderatorAuth: ModeratorAuthService;
     storage: StorageService;
     moderator: ModeratorService;
+    organizationModeration: OrganizationModerationService;
   } | null = null;
 
   private _controllers: {
     auth: AuthController;
     moderator: ModeratorController;
     moderatorAuth: ModeratorAuthController;
+    organizationModeration: OrganizationModerationController;
   } | null = null;
 
   private get repositories() {
@@ -101,7 +105,10 @@ class Container {
         this.repositories.user,
         this.repositories.moderator
       );
-
+      const organizationModerationService = new OrganizationModerationService(
+        emailService,
+        this.repositories.organization
+      );
       this._services = {
         email: emailService,
         otp: otpService,
@@ -111,6 +118,7 @@ class Container {
         storage: new StorageService(),
         moderator: moderatorService,
         moderatorAuth: moderatorAuthService,
+        organizationModeration: organizationModerationService,
       };
     }
     return this._services;
@@ -122,6 +130,9 @@ class Container {
         auth: new AuthController(this.services.auth),
         moderator: new ModeratorController(this.services.moderator),
         moderatorAuth: new ModeratorAuthController(this.services.moderatorAuth),
+        organizationModeration: new OrganizationModerationController(
+          this.services.organizationModeration
+        ),
       };
     }
     return this._controllers;
