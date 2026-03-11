@@ -8,13 +8,13 @@ import { OrganizationTypeRepository } from './repositories/organization-type.rep
 import { CauseRepository } from './repositories/cause.repository';
 import { OpportunityRepository } from './repositories/opportunity.repository';
 import { ApplicationRepository } from './repositories/application.repository';
-import { VolunteerRepository } from './repositories/volunteer.repository';
 import { FeedbackRepository } from './repositories/feedback.repository';
 import { EmailService } from './services/email.service';
 import { OtpService } from './services/otp.service';
 import { SessionService } from './services/session.service';
 import { ModeratorSessionService } from './services/moderatorSession.service';
 import { AuthService } from './services/auth.service';
+import { UserService } from './services/user.service';
 import { ModeratorAuthService } from './services/moderator-auth.service';
 import { ModeratorService } from './services/moderator.service';
 import { StorageService } from './services/storage.service';
@@ -36,7 +36,6 @@ class Container {
     cause: CauseRepository;
     opportunity: OpportunityRepository;
     application: ApplicationRepository;
-    volunteer: VolunteerRepository;
     feedback: FeedbackRepository;
   } | null = null;
 
@@ -46,6 +45,7 @@ class Container {
     session: SessionService;
     moderatorSession: ModeratorSessionService;
     auth: AuthService;
+    user: UserService;
     moderatorAuth: ModeratorAuthService;
     storage: StorageService;
     moderator: ModeratorService;
@@ -72,7 +72,6 @@ class Container {
         cause: new CauseRepository(),
         opportunity: new OpportunityRepository(),
         application: new ApplicationRepository(),
-        volunteer: new VolunteerRepository(),
         feedback: new FeedbackRepository(),
       };
     }
@@ -94,6 +93,7 @@ class Container {
         emailService,
         this.repositories.user
       );
+      const userService = new UserService(this.repositories.user);
       const moderatorAuthService = new ModeratorAuthService(
         otpService,
         moderatorSessionService,
@@ -116,6 +116,7 @@ class Container {
         session: sessionService,
         moderatorSession: moderatorSessionService,
         auth: authService,
+        user: userService,
         storage: new StorageService(),
         moderator: moderatorService,
         moderatorAuth: moderatorAuthService,
