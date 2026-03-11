@@ -33,21 +33,23 @@ export interface Organization {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface Document {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  ngoId: string;
+  documentType:
+    | 'registration_certificate'
+    | '80G_certificate'
+    | '12A_certificate'
+    | 'PAN'
+    | 'proof_of_address';
+  documentAssetUrl: string;
+  format: string;
+}
 export interface OrganizationWithDocument extends Organization {
-  document: {
-    id: string;
-    createdAt: Date;
-    updatedAt: Date;
-    ngoId: string;
-    documentType:
-      | 'registration_certificate'
-      | '80G_certificate'
-      | '12A_certificate'
-      | 'PAN'
-      | 'proof_of_address';
-    documentAssetUrl: string;
-    format: string;
-  }[];
+  documents: Document[];
 }
 
 export class OrganizationRepository {
@@ -210,7 +212,7 @@ export class OrganizationRepository {
         verificationStatus: organization.verificationStatus,
         createdAt: organization.createdAt,
         updatedAt: organization.updatedAt,
-        document: organization.documents,
+        documents: organization.documents,
       })),
       pagination: {
         page,

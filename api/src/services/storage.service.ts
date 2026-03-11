@@ -16,6 +16,7 @@ import {
   StorageUploadError,
   ForbiddenError,
 } from '../utils/errors.js';
+import { Document } from '@/repositories/organization.repository.js';
 
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': 'jpeg',
@@ -116,8 +117,8 @@ export class StorageService {
     };
   }
   // Create signed URLs
-  async getSignedUrls(assetKeys: string[]): Promise<{ url: string; assetKey: string }[]> {
-    const paths = assetKeys.map((key) => this.sanitizePath(key));
+  async getSignedUrls(documents: Document[]): Promise<(Document & { signedURL: string })[]> {
+    const paths = documents.map((document) => this.sanitizePath(document.documentAssetUrl));
     const client = this.getClient();
 
     const { data, error } = await client.storage
@@ -128,7 +129,12 @@ export class StorageService {
       throw new ForbiddenError('Error getting signed URLs');
     }
 
-    return data.map((item) => ({ url: item.signedUrl, assetKey: item.path || '' }));
+    const signedDocuments = documents.map((doc, index) => ({
+      ...doc,
+      signedURL: data[index].signedUrl,
+    }));
+
+    return signedDocuments;
   }
 
   async replace(

@@ -13,18 +13,20 @@ export class OrganizationModerationService {
 
   async listPendingNGOs(data: { page: number; limit: number }) {
     const { page, limit } = data;
-    // const { data: pendingOrgs, pagination } =
-    const pendingOrgs = await this.organizationRepository.findByVerificationStatus(
-      'pending',
-      page,
-      limit
+    const { data: pendingOrgs, pagination } =
+      await this.organizationRepository.findByVerificationStatus('pending', page, limit);
+
+    const pendingOrgsWithSignedURL = await Promise.all(
+      pendingOrgs.map(async (org) => {
+        if (org.documents?.length) {
+          const documents = await this.storageService.getSignedUrls(org.documents);
+          return { ...org, documents };
+        }
+        return org;
+      })
     );
 
-    // pendingOrgs.map(pendingOrg => {
-    //   if(pendingOrg.)
-    // })
-
-    return pendingOrgs;
+    return { data: pendingOrgsWithSignedURL, pagination };
   }
 
   async sendClarificationEmailToContactPerson(data: { organizationId: string; content: string }) {
