@@ -27,11 +27,7 @@ export const organizationsModerationRouter = new Elysia({
     '/pending',
     async (ctx: any) => {
       const { page, limit } = ctx.query;
-      const pendingOrgs = await organizationRepository.findByVerificationStatus(
-        'pending',
-        page,
-        limit
-      );
+      const pendingOrgs = await organizationModerationController.getPendingNGOs({ page, limit });
       return pendingOrgs;
     },
     {

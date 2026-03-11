@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
+import * as relations from './relations';
 
 function getConnectionString(): string {
   if (process.env.DATABASE_URL) {
@@ -20,7 +21,7 @@ const connectionString = getConnectionString();
 const client = postgres(connectionString, {
   transform: { undefined: null },
 });
-export const db = drizzle(client, { schema });
+export const db = drizzle(client, { schema: { ...schema, ...relations } });
 
 export * from './schema';
 export { runMigrations } from './migrate';

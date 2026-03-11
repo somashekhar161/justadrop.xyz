@@ -6,6 +6,7 @@ import {
   BUCKET_NAME,
   MAX_FILE_SIZE_BYTES,
   type FileClass,
+  SIGNED_URL_EXPIRE_TIME,
 } from '../constants/storage.js';
 import {
   InvalidFileClassError,
@@ -13,6 +14,7 @@ import {
   FileTooLargeError,
   StorageNotFoundError,
   StorageUploadError,
+  ForbiddenError,
 } from '../utils/errors.js';
 
 const MIME_TO_EXT: Record<string, string> = {
@@ -52,10 +54,7 @@ export class StorageService {
     }
   }
 
-  private validateFile(
-    file: { type: string; size: number },
-    fileClass: FileClass
-  ): void {
+  private validateFile(file: { type: string; size: number }, fileClass: FileClass): void {
     const config = FILE_CLASSES[fileClass];
     if (!(config.allowedTypes as readonly string[]).includes(file.type)) {
       throw new InvalidFileTypeError(fileClass, file.type, config.allowedTypes);
@@ -88,20 +87,16 @@ export class StorageService {
 
     const client = this.getClient();
     const buffer = await file.arrayBuffer();
-    const { data, error } = await client.storage
-      .from(BUCKET_NAME)
-      .upload(assetKey, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
+    const { data, error } = await client.storage.from(BUCKET_NAME).upload(assetKey, buffer, {
+      contentType: file.type,
+      upsert: true,
+    });
 
     if (error) {
       throw new StorageUploadError(fileClass, 'upload', error.message);
     }
 
-    const { data: urlData } = client.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(data.path);
+    const { data: urlData } = client.storage.from(BUCKET_NAME).getPublicUrl(data.path);
 
     return {
       url: urlData.publicUrl,
@@ -113,14 +108,27 @@ export class StorageService {
     const path = this.sanitizePath(assetKey);
     const client = this.getClient();
 
-    const { data: urlData } = client.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(path);
+    const { data: urlData } = client.storage.from(BUCKET_NAME).getPublicUrl(path);
 
     return {
       url: urlData.publicUrl,
       assetKey: path,
     };
+  }
+  // Create signed URLs
+  async getSignedUrls(assetKeys: string[]): Promise<{ url: string; assetKey: string }[]> {
+    const paths = assetKeys.map((key) => this.sanitizePath(key));
+    const client = this.getClient();
+
+    const { data, error } = await client.storage
+      .from(BUCKET_NAME)
+      .createSignedUrls(paths, SIGNED_URL_EXPIRE_TIME);
+
+    if (error) {
+      throw new ForbiddenError('Error getting signed URLs');
+    }
+
+    return data.map((item) => ({ url: item.signedUrl, assetKey: item.path || '' }));
   }
 
   async replace(
@@ -134,20 +142,16 @@ export class StorageService {
 
     const client = this.getClient();
     const buffer = await file.arrayBuffer();
-    const { data, error } = await client.storage
-      .from(BUCKET_NAME)
-      .upload(path, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
+    const { data, error } = await client.storage.from(BUCKET_NAME).upload(path, buffer, {
+      contentType: file.type,
+      upsert: true,
+    });
 
     if (error) {
       throw new StorageUploadError(fileClass, 'replace', error.message);
     }
 
-    const { data: urlData } = client.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(data.path);
+    const { data: urlData } = client.storage.from(BUCKET_NAME).getPublicUrl(data.path);
 
     return {
       url: urlData.publicUrl,

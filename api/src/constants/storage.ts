@@ -1,4 +1,5 @@
 export const MAX_FILE_SIZE_BYTES = 1024 * 1024; // 1 MB
+export const SIGNED_URL_EXPIRE_TIME = 60; // 60 seconds
 export const BUCKET_NAME = 'assets';
 
 export const FILE_CLASSES = {

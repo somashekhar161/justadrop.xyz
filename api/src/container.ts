@@ -107,7 +107,8 @@ class Container {
       );
       const organizationModerationService = new OrganizationModerationService(
         emailService,
-        this.repositories.organization
+        this.repositories.organization,
+        new StorageService()
       );
       this._services = {
         email: emailService,

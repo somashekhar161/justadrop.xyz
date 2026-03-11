@@ -2,12 +2,30 @@ import { ValidationError, ForbiddenError } from '../utils/errors.js';
 
 import { OrganizationRepository } from '@/repositories/organization.repository.js';
 import { EmailService } from './email.service.js';
+import { StorageService } from './storage.service.js';
 
 export class OrganizationModerationService {
   constructor(
     private readonly emailService: EmailService,
-    private readonly organizationRepository: OrganizationRepository
+    private readonly organizationRepository: OrganizationRepository,
+    private readonly storageService: StorageService
   ) {}
+
+  async listPendingNGOs(data: { page: number; limit: number }) {
+    const { page, limit } = data;
+    // const { data: pendingOrgs, pagination } =
+    const pendingOrgs = await this.organizationRepository.findByVerificationStatus(
+      'pending',
+      page,
+      limit
+    );
+
+    // pendingOrgs.map(pendingOrg => {
+    //   if(pendingOrg.)
+    // })
+
+    return pendingOrgs;
+  }
 
   async sendClarificationEmailToContactPerson(data: { organizationId: string; content: string }) {
     const organization = await this.organizationRepository.findById(data.organizationId);
