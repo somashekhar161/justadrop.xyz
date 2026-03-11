@@ -178,7 +178,10 @@ export class OrganizationRepository {
     const offset = (page - 1) * limit;
 
     const data = await db.query.organizations.findMany({
-      where: isNull(organizations.deletedAt),
+      where: and(
+        isNull(organizations.deletedAt),
+        eq(organizations.verificationStatus, organizationStatus)
+      ),
       with: {
         documents: true,
       },
@@ -190,7 +193,12 @@ export class OrganizationRepository {
     const [{ total }] = await db
       .select({ total: sql`count(*)`.mapWith(Number) })
       .from(organizations)
-      .where(eq(organizations.verificationStatus, organizationStatus));
+      .where(
+        and(
+          isNull(organizations.deletedAt),
+          eq(organizations.verificationStatus, organizationStatus)
+        )
+      );
 
     return {
       data: data.map((organization) => ({
