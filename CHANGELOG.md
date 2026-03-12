@@ -1,3 +1,13 @@
+# [0.0.28](https://github.com/juztadrop/juztadrop/compare/v0.0.27...v0.0.28) (2026-03-12)
+
+### Changes
+
+* feat(view): ui for volunteer onboarding & volunteer details (#92) (7639a84)
+* Revert "feat(view): ui for volunteer onboarding & volunteer details" (#91) (620de03)
+* feat(view): ui for volunteer onboarding & volunteer details (#87) (16a9faf)
+
+---
+
 # [0.0.27](https://github.com/juztadrop/juztadrop/compare/v0.0.26...v0.0.27) (2026-03-11)
 
 ### Changes
