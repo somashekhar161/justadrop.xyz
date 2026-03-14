@@ -11,10 +11,13 @@ export class OrganizationModerationService {
     private readonly storageService: StorageService
   ) {}
 
-  async listPendingNGOs(data: { page: number; limit: number }) {
+  async listPendingNGOsWithSignedDocumentURL(data: { page: number; limit: number }) {
     const { page, limit } = data;
-    const { data: pendingOrgs, pagination } =
-      await this.organizationRepository.findByVerificationStatus('pending', page, limit);
+    const { data: pendingOrgs, pagination } = await this.organizationRepository.findAllWithFilters({
+      verificationStatus: ['pending'],
+      page,
+      limit,
+    });
 
     const pendingOrgsWithSignedURL = await Promise.all(
       pendingOrgs.map(async (org) => {

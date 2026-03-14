@@ -6,7 +6,7 @@ import {
   documentTypeEnum,
   organizationStatusEnum,
 } from '../db/schema.js';
-import { eq, inArray, and, sql, ne, isNull, desc } from 'drizzle-orm';
+import { eq, inArray, and, sql, ne, isNull, desc, isNotNull } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 
 const ORG_OWNER_ROLE = 'owner' as const;
@@ -47,6 +47,18 @@ export interface Document {
     | 'proof_of_address';
   documentAssetUrl: string;
   format: string;
+}
+
+export interface AdminOrganizationListFilters {
+  verificationStatus?: Array<'pending' | 'verified' | 'rejected' | 'suspended'>;
+  type?: string;
+  causes?: string[];
+  state?: string;
+  city?: string;
+  isCsrEligible?: boolean;
+  deletedAt?: boolean;
+  page?: number;
+  limit?: number;
 }
 export interface OrganizationWithDocument extends Organization {
   documents: Document[];
@@ -167,38 +179,80 @@ export class OrganizationRepository {
     };
   }
 
-  async findByVerificationStatus(
-    organizationStatus: OrganizationStatus,
-    page: number = 1,
-    limit: number = 20
-  ): Promise<{
+  async findAllWithFilters(filters: AdminOrganizationListFilters): Promise<{
     data: OrganizationWithDocument[];
     pagination: { page: number; limit: number; total: number; totalPages: number };
   }> {
+    const {
+      verificationStatus,
+      type,
+      causes,
+      state,
+      city,
+      isCsrEligible,
+      deletedAt = false,
+      page = 1,
+      limit = 20,
+    } = filters;
+
     const offset = (page - 1) * limit;
 
-    const data = await db.query.organizations.findMany({
-      where: and(
-        isNull(organizations.deletedAt),
-        eq(organizations.verificationStatus, organizationStatus)
-      ),
-      with: {
-        documents: true,
-      },
-      limit,
-      offset,
-      orderBy: desc(organizations.createdAt),
-    });
+    const conditions: ReturnType<typeof and>[] = [];
 
-    const [{ total }] = await db
-      .select({ total: sql`count(*)`.mapWith(Number) })
-      .from(organizations)
-      .where(
-        and(
-          isNull(organizations.deletedAt),
-          eq(organizations.verificationStatus, organizationStatus)
-        )
+    if (verificationStatus !== undefined && verificationStatus.length > 0) {
+      conditions.push(inArray(organizations.verificationStatus, verificationStatus));
+    }
+
+    if (type !== undefined) {
+      // filter by organization type
+      conditions.push(eq(organizations.type, type));
+    }
+
+    if (causes?.length) {
+      const causesChecks = causes.map(
+        (c) => sql`(${organizations.causes} @> ${JSON.stringify([c])}::jsonb)`
       );
+      conditions.push(sql`(${sql.join(causesChecks, sql` OR `)})`);
+    }
+
+    if (state !== undefined) {
+      conditions.push(eq(organizations.state, state));
+    }
+
+    if (city !== undefined) {
+      conditions.push(eq(organizations.city, city));
+    }
+
+    if (isCsrEligible !== undefined) {
+      conditions.push(eq(organizations.isCsrEligible, isCsrEligible));
+    }
+
+    if (deletedAt !== undefined) {
+      if (deletedAt) {
+        conditions.push(isNotNull(organizations.deletedAt));
+      } else {
+        conditions.push(isNull(organizations.deletedAt));
+      }
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : sql`true`;
+    const cappedLimit = Math.min(limit, 100);
+
+    const [data, totalResult] = await Promise.all([
+      db.query.organizations.findMany({
+        where: whereClause,
+        with: { documents: true },
+        limit: cappedLimit,
+        offset,
+        orderBy: desc(organizations.createdAt),
+      }),
+      db
+        .select({ total: sql`count(*)`.mapWith(Number) })
+        .from(organizations)
+        .where(whereClause),
+    ]);
+
+    const total = totalResult[0].total;
 
     return {
       data: data.map((organization) => ({

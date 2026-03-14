@@ -4,7 +4,7 @@ export class OrganizationModerationController {
   constructor(private readonly organizationModerationService: OrganizationModerationService) {}
 
   async getPendingNGOs(data: { page: number; limit: number }) {
-    return await this.organizationModerationService.listPendingNGOs(data);
+    return await this.organizationModerationService.listPendingNGOsWithSignedDocumentURL(data);
   }
 
   async sendClarifyEmail(data: { organizationId: string; content: string }) {

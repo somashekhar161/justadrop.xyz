@@ -11,6 +11,7 @@ const organizationRepository = container.getRepositories().organization;
 const organizationModerationController = container.getControllers().organizationModeration;
 
 const action = {
+  pending: 'pending',
   verified: 'verified',
   rejected: 'rejected',
   suspended: 'suspended',
@@ -35,8 +36,8 @@ export const organizationsModerationRouter = new Elysia({
         'x-auth-id': t.String(),
       }),
       query: t.Object({
-        page: t.Number({ minimum: 1 }),
-        limit: t.Number({ minimum: 1, maximum: 100 }),
+        page: t.Optional(t.Number({ minimum: 1 })),
+        limit: t.Optional(t.Number({ minimum: 1, maximum: 100 })),
       }),
     }
   )
