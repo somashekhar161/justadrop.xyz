@@ -55,7 +55,7 @@ export function LandingHero() {
               variants={fadeUp}
               initial="hidden"
               animate="visible"
-              className="text-2xl font-bold leading-[1.1] tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
+              className="text-3xl font-bold leading-[1.1] tracking-tight text-white md:text-4xl lg:text-5xl xl:text-6xl"
             >
               Small Actions
               <br />
@@ -164,12 +164,13 @@ export function LandingHero() {
                 <button
                   type="button"
                   aria-label="Search"
-                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-jad-accent text-white transition-all duration-200 hover:bg-jad-primary active:scale-95 sm:rounded-r-xl sm:rounded-l-none"
+                  className="flex gap-2 h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-jad-accent text-white transition-all duration-200 hover:bg-jad-primary active:scale-95 sm:rounded-r-xl sm:rounded-l-none"
                 >
                   <Search className="h-5 w-5" strokeWidth={2.5} />
+                  <span className="sm:hidden font-semibold">Search</span>
                 </button>
               </div>
-              <p className="mt-5 flex items-center gap-2 text-sm text-white/85">
+              <p className="mt-5 flex justify-center sm:justify-start items-center gap-2 text-sm text-white/85">
                 <span>or</span>
                 <Link
                   href="/organisations/create"
