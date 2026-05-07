@@ -1,3 +1,11 @@
+# [0.0.31](https://github.com/juztadrop/juztadrop/compare/v0.0.30...v0.0.31) (2026-05-07)
+
+### Changes
+
+* Fix  home-page  on mobile (#98) (b16d58f)
+
+---
+
 # [0.0.30](https://github.com/juztadrop/juztadrop/compare/v0.0.29...v0.0.30) (2026-03-22)
 
 ### Changes
